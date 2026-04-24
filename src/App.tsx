@@ -391,7 +391,12 @@ function App() {
           <div className="winner-overlay-backdrop" aria-hidden="true" />
           <div className="winner-overlay-card" onClick={(event) => event.stopPropagation()}>
             <p className="winner-overlay-label">Chosen Name</p>
-            <h2>{winner.name}</h2>
+            <h2
+              className="winner-overlay-name"
+              style={{ fontSize: getWinnerOverlayFontSize(winner.name) }}
+            >
+              {winner.name}
+            </h2>
             <p className="winner-overlay-group">{winner.groupTitle}</p>
             <div className="winner-overlay-shine" aria-hidden="true" />
             <button
@@ -933,6 +938,32 @@ function buildRepeatedSequence(
 
 function normalizeIndex(index: number, length: number): number {
   return ((index % length) + length) % length;
+}
+
+function getWinnerOverlayFontSize(name: string): string {
+  const longestWordLength = name
+    .split(/\s+/)
+    .reduce((maxLength, word) => Math.max(maxLength, word.length), 0);
+
+  const score = Math.max(name.length, longestWordLength * 1.5);
+
+  if (score > 34) {
+    return "2.8rem";
+  }
+
+  if (score > 28) {
+    return "3.4rem";
+  }
+
+  if (score > 22) {
+    return "4.2rem";
+  }
+
+  if (score > 16) {
+    return "5.2rem";
+  }
+
+  return "clamp(3.4rem, 10vw, 7rem)";
 }
 
 function ensureUniqueTitle(baseTitle: string, usedTitles: Set<string>): string {

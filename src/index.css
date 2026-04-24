@@ -114,14 +114,17 @@ button:disabled {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.winner-overlay-card h2 {
+.winner-overlay-name {
   position: relative;
   z-index: 1;
+  max-width: 100%;
   margin: 18px 0 14px;
   font-family: "Dico", "Trebuchet MS", sans-serif;
-  font-size: clamp(3.4rem, 10vw, 7rem);
   line-height: 0.92;
   letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-wrap: balance;
   text-shadow: 0 4px 28px rgba(52, 20, 75, 0.25);
 }
 
