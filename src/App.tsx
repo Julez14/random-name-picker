@@ -237,8 +237,10 @@ function App() {
       return;
     }
 
-    const winnerEntry =
-      availableEntries[Math.floor(Math.random() * availableEntries.length)];
+    const winnerAvailableIndex = Math.floor(
+      Math.random() * availableEntries.length,
+    );
+    const winnerEntry = availableEntries[winnerAvailableIndex];
 
     if (!winnerEntry) {
       return;
@@ -246,7 +248,7 @@ function App() {
 
     const strip = buildSpinStrip(
       availableEntries.map((entry) => entry.name),
-      winnerEntry.name,
+      winnerAvailableIndex,
     );
     const winnerIndex = strip.length - (SLOT_CENTER_ROW + 1);
     const finalOffset = (winnerIndex - SLOT_CENTER_ROW) * SLOT_ROW_HEIGHT;
@@ -889,35 +891,48 @@ function reconcileGroups(
 
 function buildIdleStrip(names: string[], pinnedName?: string): string[] {
   const source = names.length > 0 ? names : idleFallbackNames;
-  const centerName =
-    pinnedName ?? source[Math.floor(source.length / 2)] ?? "Ready";
+  const centerIndex = pinnedName
+    ? Math.max(source.indexOf(pinnedName), 0)
+    : Math.floor(Math.random() * source.length);
 
-  return [
-    pickRandomItem(source),
-    pickRandomItem(source),
-    centerName,
-    pickRandomItem(source),
-    pickRandomItem(source),
-  ];
+  return buildVisibleWindow(source, centerIndex);
 }
 
-function buildSpinStrip(names: string[], winnerName: string): string[] {
-  const source = names.length > 0 ? names : [winnerName];
-  const strip = Array.from({ length: 42 }, () => pickRandomItem(source));
+function buildSpinStrip(names: string[], winnerIndex: number): string[] {
+  const source = names.length > 0 ? names : idleFallbackNames;
+  const normalizedWinnerIndex = normalizeIndex(winnerIndex, source.length);
+  const randomStartIndex = Math.floor(Math.random() * source.length);
+  const cycles = Math.max(6, Math.ceil(36 / source.length));
+  const strip = buildRepeatedSequence(source, cycles, randomStartIndex);
 
-  strip.push(
-    pickRandomItem(source),
-    pickRandomItem(source),
-    winnerName,
-    pickRandomItem(source),
-    pickRandomItem(source),
-  );
-
-  return strip;
+  return [...strip, ...buildVisibleWindow(source, normalizedWinnerIndex)];
 }
 
-function pickRandomItem(items: string[]): string {
-  return items[Math.floor(Math.random() * items.length)] ?? "Ready";
+function buildVisibleWindow(source: string[], centerIndex: number): string[] {
+  return Array.from({ length: SLOT_VISIBLE_ROWS }, (_, slotIndex) => {
+    const offset = slotIndex - SLOT_CENTER_ROW;
+    return source[normalizeIndex(centerIndex + offset, source.length)] ?? "Ready";
+  });
+}
+
+function buildRepeatedSequence(
+  source: string[],
+  cycles: number,
+  startIndex: number,
+): string[] {
+  const sequence: string[] = [];
+
+  for (let cycle = 0; cycle < cycles; cycle += 1) {
+    for (let index = 0; index < source.length; index += 1) {
+      sequence.push(source[normalizeIndex(startIndex + index, source.length)] ?? "Ready");
+    }
+  }
+
+  return sequence;
+}
+
+function normalizeIndex(index: number, length: number): number {
+  return ((index % length) + length) % length;
 }
 
 function ensureUniqueTitle(baseTitle: string, usedTitles: Set<string>): string {
